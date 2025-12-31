@@ -501,10 +501,10 @@ function App() {
                     <div className="flex gap-2">
                       {/* Y-axis */}
                       <div className="flex flex-col justify-between text-xs text-gray-400 pr-2" style={{ height: '128px' }}>
-                        <div>{maxVelocityCount}</div>
-                        <div>{Math.round(maxVelocityCount * 0.75)}</div>
-                        <div>{Math.round(maxVelocityCount * 0.5)}</div>
-                        <div>{Math.round(maxVelocityCount * 0.25)}</div>
+                        <div>{(maxVelocityCount / 3600).toFixed(1)}h</div>
+                        <div>{(maxVelocityCount * 0.75 / 3600).toFixed(1)}h</div>
+                        <div>{(maxVelocityCount * 0.5 / 3600).toFixed(1)}h</div>
+                        <div>{(maxVelocityCount * 0.25 / 3600).toFixed(1)}h</div>
                         <div>0</div>
                       </div>
                       {/* Chart area */}
@@ -520,7 +520,7 @@ function App() {
                                 <div
                                   className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-400"
                                   style={{ height: `${height}%` }}
-                                  title={`${paceLabel}: ${count} samples`}
+                                  title={`${paceLabel}: ${(count / 3600).toFixed(2)} hours`}
                                 />
                               </div>
                             )
@@ -552,10 +552,10 @@ function App() {
                     <div className="flex gap-2">
                       {/* Y-axis */}
                       <div className="flex flex-col justify-between text-xs text-gray-400 pr-2" style={{ height: '128px' }}>
-                        <div>{maxHeartrateCount}</div>
-                        <div>{Math.round(maxHeartrateCount * 0.75)}</div>
-                        <div>{Math.round(maxHeartrateCount * 0.5)}</div>
-                        <div>{Math.round(maxHeartrateCount * 0.25)}</div>
+                        <div>{(maxHeartrateCount / 3600).toFixed(1)}h</div>
+                        <div>{(maxHeartrateCount * 0.75 / 3600).toFixed(1)}h</div>
+                        <div>{(maxHeartrateCount * 0.5 / 3600).toFixed(1)}h</div>
+                        <div>{(maxHeartrateCount * 0.25 / 3600).toFixed(1)}h</div>
                         <div>0</div>
                       </div>
                       {/* Chart area */}
@@ -570,7 +570,7 @@ function App() {
                                 <div
                                   className="w-full bg-red-500 rounded-t transition-all hover:bg-red-400"
                                   style={{ height: `${height}%` }}
-                                  title={`${bpm}-${bpm + 5} bpm: ${count} samples`}
+                                  title={`${bpm}-${bpm + 5} bpm: ${(count / 3600).toFixed(2)} hours`}
                                 />
                               </div>
                             )

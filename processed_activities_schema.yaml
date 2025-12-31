@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  title: Running Activities API
+  description: Processed running activities from intervals.icu with stream data
+  version: 1.0.0
+
+paths:
+  /activities:
+    get:
+      summary: Get all processed running activities
+      description: Returns an array of running activities with metadata and stream data
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+
+components:
+  schemas:
+    Activity:
+      type: object
+      required:
+        - id
+        - datetime
+        - duration
+        - distance
+        - heartrate
+        - velocity_smooth
+      properties:
+        id:
+          type: string
+          description: Unique activity identifier
+          example: "i114705268"
+        datetime:
+          type: string
+          format: date-time
+          description: Start date and time of the activity in local time
+          example: "2025-12-30T08:57:58"
+        duration:
+          type: number
+          description: Activity duration in seconds (moving time)
+          example: 2925
+          minimum: 0
+        distance:
+          type: number
+          description: Total distance covered in meters
+          example: 9666.4
+          minimum: 0
+        heartrate:
+          type: array
+          description: Heart rate stream data (beats per minute)
+          items:
+            type: integer
+            minimum: 0
+            maximum: 250
+          example: [85, 86, 87, 90, 95, 100, 105, 110]
+        velocity_smooth:
+          type: array
+          description: Smoothed velocity stream data (meters per second)
+          items:
+            type: number
+            minimum: 0
+          example: [0, 0.5, 1.2, 2.5, 3.1, 3.5, 3.8, 4.0]

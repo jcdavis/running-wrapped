@@ -388,7 +388,7 @@ function App() {
           </div>
         </div>
 
-        <div className="bg-gray-800 p-6 rounded-lg">
+        <div className="bg-gray-800 p-6 rounded-lg w-fit mx-auto">
           <div className="mb-4 flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">Less</span>
@@ -403,7 +403,7 @@ function App() {
             </div>
           </div>
 
-          <div className="relative overflow-x-auto">
+          <div className="relative">
             {/* Month labels */}
             <div className="flex gap-1 mb-2 ml-10">
               <div className="flex relative" style={{ width: `${53 * 16}px`, height: '16px' }}>
@@ -635,7 +635,7 @@ function App() {
         <div className="mt-4 text-sm text-gray-400">
           <p>Each square represents a day. Darker greens indicate more distance run.</p>
           <p className="mt-1">Click and drag to select a range of days to see totals.</p>
-          <p><a href="https://github.com/jcdavis/running-wrapped">Source</a></p>
+          <p>Not so mobile-friendly - desktop recommended! <a href="https://github.com/jcdavis/running-wrapped">Source</a></p>
         </div>
       </div>
     </div>

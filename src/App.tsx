@@ -16,6 +16,14 @@ interface DayData {
   activities: Activity[]
 }
 
+const BINS_PER_MIN = 6
+const MIN_PACE_KM = 3
+const MAX_PACE_KM = 7
+const MIN_PACE_MI = 5
+const MAX_PACE_MI = 11
+
+const HR_MIN = 95
+
 function App() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,7 +36,7 @@ function App() {
   const [unit, setUnit] = useState<'km' | 'miles'>('km')
 
   useEffect(() => {
-    fetch('/data/processed_activities.json')
+    fetch('./data/processed_activities.json')
       .then(res => {
         if (!res.ok) throw new Error('Failed to load activities')
         return res.json()
@@ -276,15 +284,14 @@ function App() {
     })
 
     // Create histogram bins for velocity (m/s)
-    const velocityBins = new Array(16).fill(0)
+    let velocityBins: number[] = []
     if (unit === 'km') {
       // Convert m/s to min/km: min/km = 1000 / (m/s * 60)
-      // 16 bins from 3:00 to 7:00 min/km (15s intervals)
+      velocityBins = new Array((MAX_PACE_KM-MIN_PACE_KM)*BINS_PER_MIN).fill(0)
       velocityData.forEach(v => {
         if (v > 0) {
           const minPerKm = 1000 / (v * 60)
-          // Bin range: 3:00-7:00 min/km (pace), bins of 15 seconds (0.25 min)
-          const binIndex = Math.floor((minPerKm - 3) / 0.25)
+          const binIndex = Math.floor((minPerKm - MIN_PACE_KM) / (1/BINS_PER_MIN))
           if (binIndex >= 0 && binIndex < velocityBins.length) {
             velocityBins[binIndex]++
           }
@@ -292,12 +299,12 @@ function App() {
       })
     } else {
       // Convert m/s to min/mile: min/mile = 1609.34 / (m/s * 60)
-      // 16 bins from 5:00 to 11:00 min/mile (22.5s intervals)
+      velocityBins = new Array((MAX_PACE_MI-MIN_PACE_MI)*BINS_PER_MIN).fill(0)
       velocityData.forEach(v => {
         if (v > 0) {
           const minPerMile = 1609.34 / (v * 60)
           // Bin range: 5:00-11:00 min/mile (pace), bins of 22.5 seconds (0.375 min)
-          const binIndex = Math.floor((minPerMile - 5) / 0.375)
+          const binIndex = Math.floor((minPerMile - MIN_PACE_MI) / (1/BINS_PER_MIN))
           if (binIndex >= 0 && binIndex < velocityBins.length) {
             velocityBins[binIndex]++
           }
@@ -306,10 +313,10 @@ function App() {
     }
 
     // Create histogram bins for heart rate (bpm)
-    const heartrateBins = new Array(21).fill(0) // 21 bins from 95 to 200 bpm (5 bpm intervals)
+    const heartrateBins = new Array(18).fill(0) // 18 bins from 95 to 185 bpm (5 bpm intervals)
     heartrateData.forEach(hr => {
       if (hr > 0) {
-        const binIndex = Math.floor((hr - 95) / 5)
+        const binIndex = Math.floor((hr - HR_MIN) / 5)
         if (binIndex >= 0 && binIndex < heartrateBins.length) {
           heartrateBins[binIndex]++
         }
@@ -349,7 +356,7 @@ function App() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-4xl font-bold">Running Activity 2025</h1>
+            <h1 className="text-4xl font-bold">Running Wrapped 2025</h1>
             <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
               <button
                 onClick={() => setUnit('km')}
@@ -513,7 +520,7 @@ function App() {
                         <div className="flex items-end gap-1 h-32 border-l border-b border-gray-600">
                           {histograms.velocityBins.map((count, i) => {
                             const height = maxVelocityCount > 0 ? (count / maxVelocityCount) * 100 : 0
-                            const paceMin = unit === 'km' ? 3 + i * 0.25 : 5 + i * 0.375
+                            const paceMin = unit === 'km' ? MIN_PACE_KM + i * (1/BINS_PER_MIN) : MIN_PACE_MI + i * (1/BINS_PER_MIN)
                             const paceLabel = `${Math.floor(paceMin)}:${String(Math.round((paceMin % 1) * 60)).padStart(2, '0')}`
                             return (
                               <div key={i} className="flex-1 flex items-end h-full">
@@ -529,7 +536,7 @@ function App() {
                         {/* X-axis labels */}
                         <div className="flex gap-1 mt-1">
                           {histograms.velocityBins.map((_, i) => {
-                            const paceMin = unit === 'km' ? 3 + i * 0.25 : 5 + i * 0.375
+                            const paceMin = unit === 'km' ? MIN_PACE_KM + i * (1/BINS_PER_MIN) : MIN_PACE_MI + i * (1/BINS_PER_MIN)
                             const paceLabel = `${Math.floor(paceMin)}:${String(Math.round((paceMin % 1) * 60)).padStart(2, '0')}`
                             return (
                               <div key={i} className="flex-1 text-center">
@@ -564,7 +571,7 @@ function App() {
                         <div className="flex items-end gap-1 h-32 border-l border-b border-gray-600">
                           {histograms.heartrateBins.map((count, i) => {
                             const height = maxHeartrateCount > 0 ? (count / maxHeartrateCount) * 100 : 0
-                            const bpm = 95 + i * 5
+                            const bpm = HR_MIN + i * 5
                             return (
                               <div key={i} className="flex-1 flex items-end h-full">
                                 <div
@@ -579,7 +586,7 @@ function App() {
                         {/* X-axis labels */}
                         <div className="flex gap-1 mt-1">
                           {histograms.heartrateBins.map((_, i) => {
-                            const bpm = 95 + i * 5
+                            const bpm = HR_MIN + i * 5
                             return (
                               <div key={i} className="flex-1 text-center">
                                 {i % 4 === 0 && (

@@ -64,8 +64,8 @@ function App() {
     // Calculate which day of week Jan 1 is (0 = Sunday, 6 = Saturday)
     const startDayOfWeek = startDate.getDay()
 
-    // Create 52 weeks
-    for (let week = 0; week < 52; week++) {
+    // Create 53 weeks to cover the entire year (52 weeks = 364 days, need extra week for full coverage)
+    for (let week = 0; week < 53; week++) {
       const weekData: DayData[] = []
 
       for (let day = 0; day < 7; day++) {
@@ -97,7 +97,7 @@ function App() {
     const labels: { month: string; weekIndex: number }[] = []
     let currentMonth = -1
 
-    for (let week = 0; week < 52; week++) {
+    for (let week = 0; week < 53; week++) {
       const dayOffset = week * 7 - startDayOfWeek
       const currentDate = new Date(startDate)
       currentDate.setDate(startDate.getDate() + dayOffset)
@@ -351,7 +351,7 @@ function App() {
           <div className="relative overflow-x-auto">
             {/* Month labels */}
             <div className="flex gap-1 mb-2 ml-10">
-              <div className="flex relative" style={{ width: `${52 * 16}px`, height: '16px' }}>
+              <div className="flex relative" style={{ width: `${53 * 16}px`, height: '16px' }}>
                 {monthLabels.map((label, idx) => (
                   <div
                     key={idx}

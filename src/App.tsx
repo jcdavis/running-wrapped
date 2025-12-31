@@ -635,6 +635,7 @@ function App() {
         <div className="mt-4 text-sm text-gray-400">
           <p>Each square represents a day. Darker greens indicate more distance run.</p>
           <p className="mt-1">Click and drag to select a range of days to see totals.</p>
+          <p><a href="https://github.com/jcdavis/running-wrapped">Source</a></p>
         </div>
       </div>
     </div>

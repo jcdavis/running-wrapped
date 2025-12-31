@@ -25,6 +25,7 @@ function App() {
   const [selectionStart, setSelectionStart] = useState<string | null>(null) // Store date string
   const [selectionEnd, setSelectionEnd] = useState<string | null>(null) // Store date string
   const [isDragging, setIsDragging] = useState(false)
+  const [unit, setUnit] = useState<'km' | 'miles'>('km')
 
   useEffect(() => {
     fetch('/data/processed_activities.json')
@@ -124,7 +125,6 @@ function App() {
   const getColorClass = (distance: number) => {
     if (distance === 0) return 'bg-gray-800'
 
-    // Convert meters to km for easier thresholds
     const km = distance / 1000
 
     // Darker green = more distance (GitHub style)
@@ -135,8 +135,13 @@ function App() {
   }
 
   const formatDistance = (meters: number) => {
-    const km = meters / 1000
-    return km.toFixed(2)
+    if (unit === 'km') {
+      const km = meters / 1000
+      return km.toFixed(2)
+    } else {
+      const miles = (meters / 1000) * 0.621371
+      return miles.toFixed(2)
+    }
   }
 
   const formatDuration = (seconds: number) => {
@@ -158,12 +163,19 @@ function App() {
 
     if (avgVelocity === 0) return 'N/A'
 
-    // Convert m/s to min/km: min/km = 1000 / (m/s * 60)
-    const minPerKm = 1000 / (avgVelocity * 60)
-    const minutes = Math.floor(minPerKm)
-    const seconds = Math.round((minPerKm % 1) * 60)
-
-    return `${minutes}:${String(seconds).padStart(2, '0')}`
+    if (unit === 'km') {
+      // Convert m/s to min/km: min/km = 1000 / (m/s * 60)
+      const minPerKm = 1000 / (avgVelocity * 60)
+      const minutes = Math.floor(minPerKm)
+      const seconds = Math.round((minPerKm % 1) * 60)
+      return `${minutes}:${String(seconds).padStart(2, '0')}`
+    } else {
+      // Convert m/s to min/mile: min/mile = 1609.34 / (m/s * 60)
+      const minPerMile = 1609.34 / (avgVelocity * 60)
+      const minutes = Math.floor(minPerMile)
+      const seconds = Math.round((minPerMile % 1) * 60)
+      return `${minutes}:${String(seconds).padStart(2, '0')}`
+    }
   }
 
   const formatDate = (dateStr: string) => {
@@ -264,18 +276,34 @@ function App() {
     })
 
     // Create histogram bins for velocity (m/s)
-    // Convert m/s to min/km for better readability: min/km = 1000 / (m/s * 60)
-    const velocityBins = new Array(16).fill(0) // 16 bins from 3:00 to 7:00 min/km (15s intervals)
-    velocityData.forEach(v => {
-      if (v > 0) {
-        const minPerKm = 1000 / (v * 60)
-        // Bin range: 3:00-7:00 min/km (pace), bins of 15 seconds (0.25 min)
-        const binIndex = Math.floor((minPerKm - 3) / 0.25)
-        if (binIndex >= 0 && binIndex < velocityBins.length) {
-          velocityBins[binIndex]++
+    const velocityBins = new Array(16).fill(0)
+    if (unit === 'km') {
+      // Convert m/s to min/km: min/km = 1000 / (m/s * 60)
+      // 16 bins from 3:00 to 7:00 min/km (15s intervals)
+      velocityData.forEach(v => {
+        if (v > 0) {
+          const minPerKm = 1000 / (v * 60)
+          // Bin range: 3:00-7:00 min/km (pace), bins of 15 seconds (0.25 min)
+          const binIndex = Math.floor((minPerKm - 3) / 0.25)
+          if (binIndex >= 0 && binIndex < velocityBins.length) {
+            velocityBins[binIndex]++
+          }
         }
-      }
-    })
+      })
+    } else {
+      // Convert m/s to min/mile: min/mile = 1609.34 / (m/s * 60)
+      // 16 bins from 5:00 to 11:00 min/mile (22.5s intervals)
+      velocityData.forEach(v => {
+        if (v > 0) {
+          const minPerMile = 1609.34 / (v * 60)
+          // Bin range: 5:00-11:00 min/mile (pace), bins of 22.5 seconds (0.375 min)
+          const binIndex = Math.floor((minPerMile - 5) / 0.375)
+          if (binIndex >= 0 && binIndex < velocityBins.length) {
+            velocityBins[binIndex]++
+          }
+        }
+      })
+    }
 
     // Create histogram bins for heart rate (bpm)
     const heartrateBins = new Array(21).fill(0) // 21 bins from 95 to 200 bpm (5 bpm intervals)
@@ -320,7 +348,27 @@ function App() {
     <div className="min-h-screen bg-gray-900 text-white p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Running Activity 2025</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl font-bold">Running Activity 2025</h1>
+            <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+              <button
+                onClick={() => setUnit('km')}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  unit === 'km' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Kilometers
+              </button>
+              <button
+                onClick={() => setUnit('miles')}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  unit === 'miles' ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Miles
+              </button>
+            </div>
+          </div>
           <div className="flex gap-8 text-gray-300">
             <div>
               <span className="text-2xl font-semibold text-white">{getTotalRuns()}</span>
@@ -328,7 +376,7 @@ function App() {
             </div>
             <div>
               <span className="text-2xl font-semibold text-white">{formatDistance(getTotalDistance())}</span>
-              <span className="ml-2">km total</span>
+              <span className="ml-2">{unit} total</span>
             </div>
           </div>
         </div>
@@ -431,7 +479,7 @@ function App() {
                     </div>
                     <div>
                       <span className="text-xl font-semibold text-white">{formatDistance(selectionStats.distance)}</span>
-                      <span className="ml-2">km total</span>
+                      <span className="ml-2">{unit} total</span>
                     </div>
                   </div>
                 </div>
@@ -447,7 +495,9 @@ function App() {
                 <div className="grid grid-cols-2 gap-6 mt-6">
                   {/* Velocity Histogram */}
                   <div>
-                    <h4 className="text-sm font-semibold text-blue-200 mb-3">Pace Distribution (min/km)</h4>
+                    <h4 className="text-sm font-semibold text-blue-200 mb-3">
+                      Pace Distribution (min/{unit === 'km' ? 'km' : 'mi'})
+                    </h4>
                     <div className="flex gap-2">
                       {/* Y-axis */}
                       <div className="flex flex-col justify-between text-xs text-gray-400 pr-2" style={{ height: '128px' }}>
@@ -463,7 +513,7 @@ function App() {
                         <div className="flex items-end gap-1 h-32 border-l border-b border-gray-600">
                           {histograms.velocityBins.map((count, i) => {
                             const height = maxVelocityCount > 0 ? (count / maxVelocityCount) * 100 : 0
-                            const paceMin = 3 + i * 0.25
+                            const paceMin = unit === 'km' ? 3 + i * 0.25 : 5 + i * 0.375
                             const paceLabel = `${Math.floor(paceMin)}:${String(Math.round((paceMin % 1) * 60)).padStart(2, '0')}`
                             return (
                               <div key={i} className="flex-1 flex items-end h-full">
@@ -479,7 +529,7 @@ function App() {
                         {/* X-axis labels */}
                         <div className="flex gap-1 mt-1">
                           {histograms.velocityBins.map((_, i) => {
-                            const paceMin = 3 + i * 0.25
+                            const paceMin = unit === 'km' ? 3 + i * 0.25 : 5 + i * 0.375
                             const paceLabel = `${Math.floor(paceMin)}:${String(Math.round((paceMin % 1) * 60)).padStart(2, '0')}`
                             return (
                               <div key={i} className="flex-1 text-center">
@@ -564,11 +614,11 @@ function App() {
               {hoveredDay.activities.map((activity, idx) => (
                 <div key={activity.id} className="text-gray-300">
                   {hoveredDay.count > 1 && <span className="text-gray-500">Run {idx + 1}: </span>}
-                  <span>{formatDistance(activity.distance)} km</span>
+                  <span>{formatDistance(activity.distance)} {unit}</span>
                   <span className="mx-1">•</span>
                   <span>{formatDuration(activity.duration)}</span>
                   <span className="mx-1">•</span>
-                  <span>{formatPace(activity)} /km</span>
+                  <span>{formatPace(activity)} /{unit === 'km' ? 'km' : 'mi'}</span>
                 </div>
               ))}
             </div>

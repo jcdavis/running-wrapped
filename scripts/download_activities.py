@@ -89,7 +89,8 @@ def main():
         sys.exit(1)
 
     api_token = sys.argv[1]
-    data_dir = Path("../data")
+    project = Path(__file__).parent.parent
+    data_dir = project / "data"
 
     print("intervals.icu Activity Downloader")
     print("=" * 50)
@@ -119,12 +120,15 @@ def main():
         activity_date = activity.get('start_date_local', 'unknown')
 
         print(f"[{i}/{len(activities)}] {activity_date} - {activity_name} (ID: {activity_id})")
+        stream_file = streams_dir / f"{activity_id}.json"
+
+        if os.path.exists(stream_file):
+            continue
 
         streams = get_activity_streams(athlete_id, activity_id, api_token)
 
         if streams:
             # Save streams with activity ID as filename
-            stream_file = streams_dir / f"{activity_id}.json"
             save_json(streams, stream_file)
         else:
             print(f"  No streams available for this activity")

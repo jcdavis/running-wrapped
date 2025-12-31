@@ -89,7 +89,7 @@ def main():
         sys.exit(1)
 
     api_token = sys.argv[1]
-    data_dir = Path("data")
+    data_dir = Path("../data")
 
     print("intervals.icu Activity Downloader")
     print("=" * 50)

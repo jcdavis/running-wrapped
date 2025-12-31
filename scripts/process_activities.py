@@ -115,7 +115,7 @@ def process_activities(data_dir: Path, output_file: Path) -> None:
 def main():
     """Main entry point."""
     # Set up paths
-    script_dir = Path(__file__).parent
+    script_dir = Path(__file__).parent.parent
     data_dir = script_dir / "data"
     output_file = data_dir / "processed_activities.json"
 

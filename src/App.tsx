@@ -67,7 +67,8 @@ function App() {
     })
 
     // Generate 7x52 grid starting from Jan 1, 2025
-    const startDate = new Date('2025-01-01')
+    // Use local time to avoid timezone issues
+    const startDate = new Date(2025, 0, 1) // Year, Month (0-indexed), Day
     const weeks: DayData[][] = []
 
     // Calculate which day of week Jan 1 is (0 = Sunday, 6 = Saturday)
@@ -80,10 +81,14 @@ function App() {
       for (let day = 0; day < 7; day++) {
         // Calculate the date for this cell
         const dayOffset = week * 7 + day - startDayOfWeek
-        const currentDate = new Date(startDate)
-        currentDate.setDate(startDate.getDate() + dayOffset)
+        const currentDate = new Date(2025, 0, 1 + dayOffset) // Use local time constructor
 
-        const dateStr = currentDate.toISOString().split('T')[0]
+        // Format date as YYYY-MM-DD in local time
+        const year = currentDate.getFullYear()
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+        const dayOfMonth = String(currentDate.getDate()).padStart(2, '0')
+        const dateStr = `${year}-${month}-${dayOfMonth}`
+
         const data = dateMap.get(dateStr)
 
         weekData.push({
@@ -101,15 +106,14 @@ function App() {
   }
 
   const getMonthLabels = () => {
-    const startDate = new Date('2025-01-01')
+    const startDate = new Date(2025, 0, 1) // Use local time
     const startDayOfWeek = startDate.getDay()
     const labels: { month: string; weekIndex: number }[] = []
     let currentMonth = -1
 
     for (let week = 0; week < 53; week++) {
       const dayOffset = week * 7 - startDayOfWeek
-      const currentDate = new Date(startDate)
-      currentDate.setDate(startDate.getDate() + dayOffset)
+      const currentDate = new Date(2025, 0, 1 + dayOffset) // Use local time constructor
 
       // Skip if date is before the start of 2025
       if (currentDate < startDate) {
